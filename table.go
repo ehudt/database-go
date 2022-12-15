@@ -4,16 +4,13 @@ import "fmt"
 
 // Column type names
 const (
-	Char    string = "CHAR"
-	VarChar string = "VARCHAR"
-	Text    string = "TEXT"
-	Int     string = "INT"
-	Float   string = "FLOAT"
+	Text  string = "TEXT"
+	Int   string = "INT"
+	Float string = "FLOAT"
 )
 
 type ColumnType struct {
 	Name string
-	Size *int
 }
 
 type Column struct {
@@ -31,15 +28,20 @@ type Table struct {
 	Data   [][]Cell // Column major order
 }
 
-func (t *Table) Select(columns []string) (*Table, error) {
-	// Find the indices of columns in the table.
-	cIndices := make([]int, len(columns))
+func Select(t Table, columns []string) (*Table, error) {
+	res := &Table{
+		Schema: make([]Column, len(columns)),
+		ColMap: make(map[string]int, len(columns)),
+		Data:   make([][]Cell, len(columns)),
+	}
 	for i, c := range columns {
 		ci, ok := t.ColMap[c]
 		if !ok {
 			return nil, fmt.Errorf("Column not found: %s", c)
 		}
-		cIndices[i] = ci
+		res.Schema[i] = t.Schema[ci]
+		res.ColMap[c] = i
+		res.Data[i] = t.Data[ci]
 	}
-
+	return res, nil
 }
